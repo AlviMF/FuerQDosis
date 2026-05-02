@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta charset="UTF-8">
+<title>FuerQdosis</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+
+body {
+  background: #0f172a;
+  color: #e2e8f0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  margin: 0;
+  padding: 10px;
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js");
+}
+</script>
+}
+
+/* HEADER */
+<div class="header">
+  <img src="logo.png" style="width:80px; margin-bottom:5px;">
+  <h1>FuerQdosis</h1>
+  <p>Servicio de Quirófano - Hospital de Fuerteventura</p>
+</div>
+}
+
+.header h1 {
+  margin: 5px;
+  color: #00c2a8;
+}
+
+/* TARJETAS */
+.card {
+  background: #1e293b;
+  padding: 15px;
+  margin-top: 12px;
+  border-radius: 16px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+/* TITULOS */
+h2 {
+  margin-top: 0;
+  font-size: 18px;
+  color: #38bdf8;
+}
+
+/* INPUTS */
+input, select {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: #334155;
+  color: white;
+  font-size: 16px;
+}
+
+/* BOTON */
+button {
+  width: 100%;
+  padding: 15px;
+  border-radius: 12px;
+  border: none;
+  background: #00c2a8;
+  color: black;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+/* RESULTADOS */
+.result {
+  font-size: 18px;
+  font-weight: bold;
+  color: #22c55e;
+}
+
+/* ALERTA */
+.alert {
+  background: #7f1d1d;
+  padding: 10px;
+  border-radius: 10px;
+  margin-top: 10px;
+  color: #fecaca;
+  font-size: 14px;
+}
+
+/* DIBUJO SIMPLE */
+.icon {
+  font-size: 28px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <h1>FuerQdosis</h1>
+  <p>Servicio de Quirófano - Hospital de Fuerteventura</p>
+</div>
+
+<div class="card">
+
+<label>Peso (kg)</label>
+<input id="peso" type="number">
+
+<label>Edad (años)</label>
+<input id="edad" type="number">
+
+<label>Horas de ayuno</label>
+<input id="ayuno" type="number">
+
+<label>Tipo de cirugía</label>
+<select id="cirugia">
+  <option value="2">Leve</option>
+  <option value="4">Moderada</option>
+  <option value="6">Mayor</option>
+</select>
+
+<button onclick="calcular()">🧮 CALCULAR DOSIS</button>
+
+<div class="alert">
+⚠️ Uso orientativo. Verificar siempre con protocolo hospitalario.
+</div>
+
+</div>
+
+<div class="card">
+<h2 class="icon">💉 Inducción</h2>
+<p>Propofol: <span class="result" id="propofol"></span> mg</p>
+<p>Atropina: <span class="result" id="atropina"></span> mg</p>
+<p>Fentanilo: <span class="result" id="fentanilo"></span> mcg</p>
+<p>Rocuronio: <span class="result" id="rocuronio"></span> mg</p>
+</div>
+
+<div class="card">
+<h2 class="icon">🔄 Mantenimiento</h2>
+<p>Propofol: <span class="result" id="propofol_perf"></span> ml/h</p>
+<p>Remifentanilo: <span class="result" id="remi_perf"></span> ml/h</p>
+</div>
+
+<div class="card">
+<h2 class="icon">💧 Sueroterapia</h2>
+<p>Mantenimiento: <span class="result" id="mantenimiento"></span> ml/h</p>
+<p>Déficit: <span class="result" id="deficit"></span> ml</p>
+<p>Pérdidas: <span class="result" id="perdidas"></span> ml/h</p>
+<p><b>Total: <span class="result" id="total"></span> ml/h</b></p>
+</div>
+
+<div class="card">
+<h2 class="icon">🫁 Vía aérea</h2>
+<p>Tubo (cuff): <span class="result" id="tubo"></span> mm</p>
+<p>Profundidad: <span class="result" id="prof"></span> cm</p>
+<p>Guedel: <span class="result" id="guedel"></span></p>
+</div>
+
+<div class="card">
+<h2 class="icon">😷 Analgesia</h2>
+<p>Paracetamol: <span class="result" id="para"></span> mg</p>
+<p>Ibuprofeno: <span class="result" id="ibu"></span> mg</p>
+<p>Metamizol: <span class="result" id="meta"></span> mg</p>
+<p>Dolantina: <span class="result" id="dola"></span> mg</p>
+</div>
+
+<div class="card">
+<h2 class="icon">📊 Constantes</h2>
+<p>FC: <span class="result" id="fc"></span></p>
+<p>FR: <span class="result" id="fr"></span></p>
+<p>TA: <span class="result" id="ta"></span></p>
+</div>
+
+<script>
+
+function calcular(){
+
+let peso = parseFloat(document.getElementById("peso").value);
+let edad = parseFloat(document.getElementById("edad").value);
+let ayuno = parseFloat(document.getElementById("ayuno").value);
+let cirugia = parseFloat(document.getElementById("cirugia").value);
+
+if(!peso || !edad){
+alert("Introduce peso y edad");
+return;
+}
+
+// INDUCCIÓN
+let propofol = Math.min(peso*2.5, peso*3);
+let atropina = Math.max(peso*0.02, 0.1);
+let fentanilo = Math.min(peso*2, peso*5);
+let rocuronio = Math.min(peso*0.6, peso*1.2);
+
+document.getElementById("propofol").innerText = propofol.toFixed(1);
+document.getElementById("atropina").innerText = atropina.toFixed(2);
+document.getElementById("fentanilo").innerText = fentanilo.toFixed(1);
+document.getElementById("rocuronio").innerText = rocuronio.toFixed(1);
+
+// MANTENIMIENTO
+let propofol_perf = (peso*150*60)/(1000*10);
+let remi_perf = (peso*0.2*60)/50;
+
+document.getElementById("propofol_perf").innerText = propofol_perf.toFixed(1);
+document.getElementById("remi_perf").innerText = remi_perf.toFixed(2);
+
+// SUEROS
+let mantenimiento;
+if(peso<=10){mantenimiento=peso*4;}
+else if(peso<=20){mantenimiento=40+(peso-10)*2;}
+else{mantenimiento=60+(peso-20);}
+
+let deficit = mantenimiento*ayuno;
+let perdidas = peso*cirugia;
+let total = mantenimiento+perdidas;
+
+document.getElementById("mantenimiento").innerText = mantenimiento.toFixed(1);
+document.getElementById("deficit").innerText = deficit.toFixed(1);
+document.getElementById("perdidas").innerText = perdidas.toFixed(1);
+document.getElementById("total").innerText = total.toFixed(1);
+
+// VIA AEREA
+let tubo = (edad/4)+3.5;
+let prof = tubo*3;
+
+let guedel;
+if(peso<5){guedel="000";}
+else if(peso<10){guedel="00";}
+else if(peso<20){guedel="0";}
+else if(peso<30){guedel="1";}
+else if(peso<50){guedel="2";}
+else{guedel="3";}
+
+document.getElementById("tubo").innerText = tubo.toFixed(1);
+document.getElementById("prof").innerText = prof.toFixed(1);
+document.getElementById("guedel").innerText = guedel;
+
+// ANALGESIA
+document.getElementById("para").innerText = Math.min(peso*15,1000).toFixed(0);
+document.getElementById("ibu").innerText = Math.min(peso*10,600).toFixed(0);
+document.getElementById("meta").innerText = Math.min(peso*30,2000).toFixed(0);
+document.getElementById("dola").innerText = (peso*1).toFixed(0);
+
+// CONSTANTES
+let fc, fr, ta;
+
+if(edad<1){fc="110-160"; fr="30-50"; ta="70-90";}
+else if(edad<5){fc="90-140"; fr="20-30"; ta="80-100";}
+else{fc="70-120"; fr="16-24"; ta="90-110";}
+
+document.getElementById("fc").innerText = fc;
+document.getElementById("fr").innerText = fr;
+document.getElementById("ta").innerText = ta;
+
+}
+
+</script>
+
+</body>
+</html>
