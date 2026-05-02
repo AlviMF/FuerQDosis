@@ -1,19 +1,20 @@
 const CACHE_NAME = "fuerqdosis-v1";
 
-self.addEventListener("install", event => {
-  event.waitUntil(
+self.addEventListener("install", e => {
+  e.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
       return cache.addAll([
-        "index.html"
+        "index.html",
+        "manifest.json",
+        "icon.png",
+        "logo.png"
       ]);
     })
   );
 });
 
-self.addEventListener("fetch", event => {
-  event.respondWith(
-    caches.match(event.request).then(response => {
-      return response || fetch(event.request);
-    })
+self.addEventListener("fetch", e => {
+  e.respondWith(
+    caches.match(e.request).then(r => r || fetch(e.request))
   );
 });
